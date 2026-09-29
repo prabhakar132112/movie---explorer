@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -45,7 +46,7 @@ export function MovieProvider({ children }) {
   }, [favorites]);
 
   // Load trending movies
-  const fetchTrendingMovies = async () => {
+  const fetchTrendingMovies = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -65,49 +66,52 @@ export function MovieProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Search movies
-  const searchMovieResults = async (query) => {
-    const trimmedQuery = query.trim();
+  const searchMovieResults = useCallback(
+    async (query) => {
+      const trimmedQuery = query.trim();
 
-    if (!trimmedQuery) {
-      localStorage.removeItem("lastSearchedMovie");
-      setSearchQuery("");
-      await fetchTrendingMovies();
-      return;
-    }
+      if (!trimmedQuery) {
+        localStorage.removeItem("lastSearchedMovie");
+        setSearchQuery("");
+        await fetchTrendingMovies();
+        return;
+      }
 
-    try {
-      setLoading(true);
-      setError("");
+      try {
+        setLoading(true);
+        setError("");
 
-      setSearchQuery(trimmedQuery);
+        setSearchQuery(trimmedQuery);
 
-      localStorage.setItem(
-        "lastSearchedMovie",
-        trimmedQuery
-      );
+        localStorage.setItem(
+          "lastSearchedMovie",
+          trimmedQuery
+        );
 
-      const response = await searchMovies(
-        trimmedQuery,
-        1
-      );
+        const response = await searchMovies(
+          trimmedQuery,
+          1
+        );
 
-      setMovies(response.data.results || []);
-      setCurrentPage(1);
+        setMovies(response.data.results || []);
+        setCurrentPage(1);
 
-      setHasMore(
-        response.data.page < response.data.total_pages
-      );
-    } catch (err) {
-      setError(
-        "Unable to search movies. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        setHasMore(
+          response.data.page < response.data.total_pages
+        );
+      } catch (err) {
+        setError(
+          "Unable to search movies. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchTrendingMovies]
+  );
 
   // Clear search
   const clearSearchAndShowTrending = async () => {
@@ -202,7 +206,7 @@ export function MovieProvider({ children }) {
     } else {
       fetchTrendingMovies();
     }
-  }, []);
+  }, [searchMovieResults, fetchTrendingMovies]);
 
   return (
     <MovieContext.Provider

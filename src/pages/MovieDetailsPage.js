@@ -7,7 +7,6 @@ import {
   CircularProgress,
   Container,
   Divider,
-  IconButton,
   Paper,
   Stack,
   Typography,
@@ -30,7 +29,7 @@ function MovieDetailsPage() {
   const { movieId } = useParams();
   const navigate = useNavigate();
 
-  const { favorites, toggleFavorite, isFavorite } = useMovies();
+  const {  toggleFavorite, isFavorite } = useMovies();
 
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -417,7 +416,7 @@ function MovieDetailsPage() {
                         variant="caption"
                         color="text.secondary"
                         sx={{
-                          display: "block",
+                         
                           mt: 0.5,
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
