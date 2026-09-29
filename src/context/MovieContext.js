@@ -9,6 +9,7 @@ import {
 import {
   getTrendingMovies,
   searchMovies,
+  getMovieGenres,
 } from "../services/movieService";
 
 const MovieContext = createContext();
@@ -17,6 +18,7 @@ export function MovieProvider({ children }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [genres, setGenres] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState(() => {
     return localStorage.getItem("lastSearchedMovie") || "";
@@ -36,6 +38,18 @@ export function MovieProvider({ children }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  useEffect(() => {
+  const fetchGenres = async () => {
+    try {
+      const response = await getMovieGenres();
+      setGenres(response.data.genres || []);
+    } catch (err) {
+      console.error("Unable to load movie genres.");
+    }
+  };
+
+  fetchGenres();
+}, []);
 
   // Save favorites
   useEffect(() => {
@@ -216,7 +230,7 @@ export function MovieProvider({ children }) {
         error,
         searchQuery,
         favorites,
-
+        genres,
         currentPage,
         hasMore,
         loadingMore,

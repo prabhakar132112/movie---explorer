@@ -1,12 +1,9 @@
 import {
   Card,
   CardActionArea,
-  CardContent,
-  CardMedia,
   Typography,
   Box,
   IconButton,
-  Chip,
 } from "@mui/material";
 
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -14,6 +11,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import StarIcon from "@mui/icons-material/Star";
 
 import { useNavigate } from "react-router-dom";
+
+import "./MovieCard.css";
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
@@ -24,76 +23,47 @@ function MovieCard({ movie, isFavorite, onToggleFavorite }) {
     ? `${IMAGE_BASE_URL}${movie.poster_path}`
     : null;
 
+  const rating =
+    typeof movie.vote_average === "number" && movie.vote_average > 0
+      ? movie.vote_average.toFixed(1)
+      : "N/A";
+
   const releaseYear = movie.release_date
     ? new Date(movie.release_date).getFullYear()
     : "N/A";
 
-  const rating = movie.vote_average
-    ? movie.vote_average.toFixed(1)
-    : "N/A";
+  const handleFavorite = (event) => {
+    event.stopPropagation();
+    onToggleFavorite(movie);
+  };
 
   const handleMovieClick = () => {
     navigate(`/movie/${movie.id}`);
   };
 
-  const handleFavoriteClick = (event) => {
-    event.stopPropagation();
-    onToggleFavorite(movie);
-  };
-
   return (
-    <Card
-      elevation={0}
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid",
-        borderColor: "divider",
-        transition: "transform 0.25s ease, box-shadow 0.25s ease",
-
-        "&:hover": {
-          transform: "translateY(-6px)",
-          boxShadow: 6,
-        },
-      }}
-    >
-      <CardActionArea
-        onClick={handleMovieClick}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-          height: "100%",
-        }}
-      >
-        {/* Poster */}
-        <Box
+    <Card className="movie-card">
+      <Box className="movie-card__poster-wrapper">
+        <CardActionArea
+          onClick={handleMovieClick}
+          aria-label={`View details for ${movie.title}`}
           sx={{
-            position: "relative",
             width: "100%",
-            aspectRatio: "2 / 3",
-            backgroundColor: "action.hover",
+            height: "100%",
           }}
         >
           {posterUrl ? (
-            <CardMedia
-              component="img"
-              image={posterUrl}
+            <img
+              className="movie-card__poster"
+              src={posterUrl}
               alt={`${movie.title} poster`}
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
+              loading="lazy"
             />
           ) : (
             <Box
               sx={{
                 width: "100%",
-                height: "100%",
+                aspectRatio: "2 / 3",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -105,93 +75,73 @@ function MovieCard({ movie, isFavorite, onToggleFavorite }) {
                 color="text.secondary"
                 textAlign="center"
               >
-                Poster unavailable
+                No poster available
               </Typography>
             </Box>
           )}
+        </CardActionArea>
 
-          {/* Rating */}
-          <Chip
-            icon={<StarIcon />}
-            label={rating}
-            size="small"
+        {/* Rating */}
+        <Box
+          className="movie-card__rating"
+          aria-label={`Rating ${rating} out of 10`}
+        >
+          <StarIcon
             sx={{
-              position: "absolute",
-              top: 12,
-              left: 12,
-              fontWeight: 700,
-              backgroundColor: "rgba(0, 0, 0, 0.78)",
-              color: "#fff",
-
-              "& .MuiChip-icon": {
-                color: "#ffc107",
-              },
+              fontSize: 15,
+              color: "#ffc107",
             }}
           />
 
-          {/* Favorite */}
-          <IconButton
-            onClick={handleFavoriteClick}
-            aria-label={
-              isFavorite
-                ? `Remove ${movie.title} from favorites`
-                : `Add ${movie.title} to favorites`
-            }
-            sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              backgroundColor: "rgba(0, 0, 0, 0.65)",
-              color: "#fff",
-
-              "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.85)",
-              },
-            }}
-          >
-            {isFavorite ? (
-              <FavoriteIcon color="error" />
-            ) : (
-              <FavoriteBorderIcon />
-            )}
-          </IconButton>
+          {rating}
         </Box>
 
-        {/* Information */}
-        <CardContent
-          sx={{
-            flexGrow: 1,
-            width: "100%",
-            p: 2,
-          }}
+        {/* Favorite */}
+        <IconButton
+          className={`movie-card__favorite ${
+            isFavorite ? "movie-card__favorite--active" : ""
+          }`}
+          onClick={handleFavorite}
+          aria-label={
+            isFavorite
+              ? `Remove ${movie.title} from favorites`
+              : `Add ${movie.title} to favorites`
+          }
         >
-          <Typography
-            variant="h6"
-            component="h2"
-            fontWeight={700}
-            sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              lineHeight: 1.3,
-              minHeight: "2.6em",
-            }}
-          >
-            {movie.title || "Untitled Movie"}
-          </Typography>
+          {isFavorite ? (
+            <FavoriteIcon />
+          ) : (
+            <FavoriteBorderIcon />
+          )}
+        </IconButton>
+      </Box>
 
+      {/* Movie information */}
+      <Box className="movie-card__content">
+        <Typography
+          component="h3"
+          className="movie-card__title"
+          title={movie.title}
+        >
+          {movie.title}
+        </Typography>
+
+        <Box className="movie-card__meta">
           <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mt: 1,
-            }}
+            component="span"
+            className="movie-card__year"
           >
             {releaseYear}
           </Typography>
-        </CardContent>
-      </CardActionArea>
+
+          <Typography
+            component="span"
+            className="movie-card__type"
+          >
+            Movie
+          </Typography>
+        </Box>
+      </Box>
     </Card>
   );
 }

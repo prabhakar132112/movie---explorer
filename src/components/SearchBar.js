@@ -1,3 +1,4 @@
+import "./SearchBar.css";
 import { useEffect, useState } from "react";
 
 import {
@@ -36,6 +37,7 @@ function SearchBar({ onSearch, initialQuery = "" }) {
   return (
     <Box
       component="form"
+      className="search-bar"
       onSubmit={handleSubmit}
       sx={{
         width: "100%",
@@ -44,6 +46,7 @@ function SearchBar({ onSearch, initialQuery = "" }) {
       }}
     >
       <TextField
+        className="search-bar__field"
         fullWidth
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -54,13 +57,14 @@ function SearchBar({ onSearch, initialQuery = "" }) {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon />
+              <SearchIcon className="search-bar__icon"  />
             </InputAdornment>
           ),
 
           endAdornment: query && (
             <InputAdornment position="end">
               <IconButton
+               className="search-bar__clear"
                 type="button"
                 onClick={handleClear}
                 aria-label="Clear search"

@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -18,9 +19,14 @@ export function ThemeProvider({ children }) {
     return localStorage.getItem("movieExplorerTheme") || "light";
   });
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", mode);
+  }, [mode]);
+
   const toggleTheme = () => {
     setMode((currentMode) => {
-      const newMode = currentMode === "light" ? "dark" : "light";
+      const newMode =
+        currentMode === "light" ? "dark" : "light";
 
       localStorage.setItem("movieExplorerTheme", newMode);
 

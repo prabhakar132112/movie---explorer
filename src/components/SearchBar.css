@@ -1,0 +1,125 @@
+.search-bar {
+  width: 100%;
+}
+
+.search-bar__field {
+  width: 100%;
+}
+
+/* Premium search container */
+
+.search-bar__field .MuiOutlinedInput-root {
+  min-height: 58px;
+
+  border-radius: var(--radius-lg);
+
+  background: var(--bg-surface);
+
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px var(--border-color);
+
+  transition:
+    box-shadow var(--transition-normal),
+    transform var(--transition-normal),
+    background-color var(--transition-normal);
+}
+
+.search-bar__field .MuiOutlinedInput-root:hover {
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(25, 118, 210, 0.16);
+}
+
+.search-bar__field .MuiOutlinedInput-root.Mui-focused {
+  transform: translateY(-1px);
+
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 3px rgba(25, 118, 210, 0.12);
+}
+
+.search-bar__field .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border-color);
+}
+
+.search-bar__field .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(25, 118, 210, 0.35);
+}
+
+.search-bar__field .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-width: 1px;
+  border-color: var(--brand-primary);
+}
+
+/* Search icon */
+
+.search-bar__icon {
+  color: var(--text-secondary);
+
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.search-bar__field .MuiOutlinedInput-root.Mui-focused
+  .search-bar__icon {
+  color: var(--brand-primary);
+  transform: scale(1.08);
+}
+
+/* Input text */
+
+.search-bar__field input {
+  color: var(--text-primary);
+  font-size: var(--text-md);
+}
+
+.search-bar__field input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Clear button */
+
+.search-bar__clear {
+  color: var(--text-secondary) !important;
+
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast) !important;
+}
+
+.search-bar__clear:hover {
+  color: var(--text-primary) !important;
+  transform: rotate(90deg);
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .search-bar__field .MuiOutlinedInput-root {
+    min-height: 54px;
+    border-radius: var(--radius-md);
+  }
+
+  .search-bar__field input {
+    font-size: 0.95rem;
+  }
+}
+
+/* Reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .search-bar__field .MuiOutlinedInput-root,
+  .search-bar__icon,
+  .search-bar__clear {
+    transition: none !important;
+  }
+
+  .search-bar__clear:hover {
+    transform: none;
+  }
+}

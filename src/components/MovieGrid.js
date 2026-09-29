@@ -1,43 +1,74 @@
-import { Grid, Typography } from "@mui/material";
-import MovieCard from "./MovieCard";
+import { Typography, Box } from "@mui/material";
 
-function MovieGrid({ movies, favorites, onToggleFavorite }) {
-  if (!movies.length) {
+import MovieCard from "./MovieCard";
+import MovieSkeleton from "./MovieSkeleton";
+
+import "./MovieGrid.css";
+
+function MovieGrid({
+  movies,
+  favorites,
+  onToggleFavorite,
+  loading = false,
+}) {
+  if (loading) {
     return (
-      <Typography
-        variant="h6"
-        color="text.secondary"
-        textAlign="center"
-        sx={{ py: 8 }}
-      >
-        No movies found.
-      </Typography>
+      <Box className="movie-grid">
+        <Box className="movie-grid__items">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <MovieSkeleton key={index} />
+          ))}
+        </Box>
+      </Box>
     );
   }
 
+ if (!movies.length) {
+  return (
+    <Box className="movie-grid__empty">
+      <Box className="movie-grid__empty-icon">
+        <Typography component="span">🎬</Typography>
+      </Box>
+
+      <Typography
+        component="h3"
+        className="movie-grid__empty-title"
+      >
+        No movies found
+      </Typography>
+
+      <Typography
+        component="p"
+        className="movie-grid__empty-text"
+      >
+        Try searching with a different movie title or keyword.
+      </Typography>
+    </Box>
+  );
+}
   const isFavorite = (movieId) =>
     favorites.some((movie) => movie.id === movieId);
 
   return (
-    <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-      {movies.map((movie) => (
-        <Grid
-          key={movie.id}
-          size={{
-            xs: 6,
-            sm: 4,
-            md: 3,
-            lg: 2.4,
-          }}
-        >
-          <MovieCard
-            movie={movie}
-            isFavorite={isFavorite(movie.id)}
-            onToggleFavorite={onToggleFavorite}
-          />
-        </Grid>
-      ))}
-    </Grid>
+    <Box className="movie-grid">
+      <Box className="movie-grid__items">
+        {movies.map((movie, index) => (
+          <Box
+            key={movie.id}
+            className="stagger-item"
+            style={{
+              animationDelay: `${Math.min(index, 7) * 40}ms`,
+            }}
+          >
+            <MovieCard
+              movie={movie}
+              isFavorite={isFavorite(movie.id)}
+              onToggleFavorite={onToggleFavorite}
+            />
+          </Box>
+        ))}
+      </Box>
+    </Box>
   );
 }
 

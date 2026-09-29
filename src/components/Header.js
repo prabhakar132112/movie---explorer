@@ -5,58 +5,75 @@ import {
   Toolbar,
   Typography,
   Box,
-  Button,
   IconButton,
+  Button,
   Drawer,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Divider,
-  Container,
+  Tooltip,
+  Badge,
 } from "@mui/material";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import MovieFilterIcon from "@mui/icons-material/MovieFilter";
-import HomeIcon from "@mui/icons-material/Home";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
 
-import { NavLink, useNavigate } from "react-router-dom";
-import { useThemeMode } from "../context/ThemeContext";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const navigationItems = [
-  {
-    label: "Home",
-    path: "/",
-    icon: <HomeIcon />,
-  },
-  {
-    label: "Favorites",
-    path: "/favorites",
-    icon: <FavoriteIcon />,
-  },
-];
+import { useThemeMode } from "../context/ThemeContext";
+import { useMovies } from "../context/MovieContext";
 
 function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { mode, toggleTheme } = useThemeMode();
+  const { favorites } = useMovies();
 
-  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen((current) => !current);
+  const handleNavigation = (path) => {
+    navigate(path);
+    setMobileOpen(false);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("movieExplorerUser");
-    setMobileOpen(false);
     navigate("/login", { replace: true });
   };
+
+  const isActive = (path) => location.pathname === path;
+
+  const favoritesCount = favorites.length;
+
+  const navItems = [
+    {
+      label: "Home",
+      path: "/",
+      icon: <HomeOutlinedIcon />,
+    },
+    {
+      label: "Favorites",
+      path: "/favorites",
+      icon: (
+        <Badge
+          badgeContent={favoritesCount}
+          color="error"
+          max={99}
+          invisible={favoritesCount === 0}
+        >
+          <FavoriteBorderIcon />
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -64,166 +81,195 @@ function Header() {
         position="sticky"
         elevation={0}
         sx={{
+          backdropFilter: "blur(14px)",
+          backgroundColor:
+            mode === "dark"
+              ? "rgba(18, 18, 18, 0.88)"
+              : "rgba(255, 255, 255, 0.92)",
+          color: "text.primary",
           borderBottom: "1px solid",
           borderColor: "divider",
-          backdropFilter: "blur(12px)",
         }}
       >
-        <Container maxWidth="xl">
-          <Toolbar
-            disableGutters
+        <Toolbar
+          sx={{
+            minHeight: { xs: 64, md: 72 },
+            px: { xs: 2, sm: 3, md: 5 },
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Logo */}
+          <Box
+            onClick={() => handleNavigation("/")}
             sx={{
-              minHeight: { xs: 64, md: 72 },
-              justifyContent: "space-between",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              cursor: "pointer",
+              userSelect: "none",
             }}
           >
-            {/* Logo */}
-            <Typography
-              component={NavLink}
-              to="/"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "inherit",
-                textDecoration: "none",
-                fontSize: {
-                  xs: "1.15rem",
-                  md: "1.35rem",
-                },
-                fontWeight: 800,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              <MovieFilterIcon />
-
-              <Box component="span">
-                Movie Explorer
-              </Box>
-            </Typography>
-
-            {/* Desktop Navigation */}
             <Box
               sx={{
-                display: {
-                  xs: "none",
-                  md: "flex",
-                },
+                width: 38,
+                height: 38,
+                borderRadius: 2,
+                display: "flex",
                 alignItems: "center",
-                gap: 1,
+                justifyContent: "center",
+                background:
+                  "linear-gradient(135deg, #1976d2 0%, #7c4dff 100%)",
+                color: "#fff",
+                boxShadow: "0 6px 18px rgba(25, 118, 210, 0.25)",
               }}
             >
-              {navigationItems.map((item) => (
-                <Button
-                  key={item.path}
-                  component={NavLink}
-                  to={item.path}
-                  color="inherit"
-                  startIcon={item.icon}
-                  sx={{
-                    px: 2,
-                    py: 1,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    fontWeight: 600,
-
-                    "&.active": {
-                      backgroundColor:
-                        "rgba(255, 255, 255, 0.12)",
-                    },
-
-                    "&:hover": {
-                      backgroundColor:
-                        "rgba(255, 255, 255, 0.08)",
-                    },
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-
-              {/* Theme Toggle */}
-              <IconButton
-                color="inherit"
-                onClick={toggleTheme}
-                aria-label={
-                  mode === "light"
-                    ? "Switch to dark mode"
-                    : "Switch to light mode"
-                }
-                sx={{ ml: 1 }}
-              >
-                {mode === "light" ? (
-                  <DarkModeIcon />
-                ) : (
-                  <LightModeIcon />
-                )}
-              </IconButton>
-
-              {/* Logout */}
-              <Button
-                color="inherit"
-                startIcon={<LogoutIcon />}
-                onClick={handleLogout}
-                sx={{
-                  ml: 1,
-                  textTransform: "none",
-                  fontWeight: 600,
-                }}
-              >
-                Logout
-              </Button>
+              <MovieOutlinedIcon />
             </Box>
 
-            {/* Mobile Menu Button */}
-            <IconButton
-              color="inherit"
-              edge="end"
-              onClick={handleDrawerToggle}
-              aria-label="open navigation menu"
+            <Typography
+              variant="h6"
               sx={{
-                display: {
-                  xs: "flex",
-                  md: "none",
-                },
+                fontWeight: 800,
+                letterSpacing: "-0.4px",
+                display: { xs: "none", sm: "block" },
               }}
+            >
+              Movie Explorer
+            </Typography>
+          </Box>
+
+          {/* Desktop Navigation */}
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            {navItems.map((item) => (
+              <Button
+                key={item.path}
+                startIcon={item.icon}
+                onClick={() => handleNavigation(item.path)}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  color: isActive(item.path)
+                    ? "primary.main"
+                    : "text.secondary",
+                  backgroundColor: isActive(item.path)
+                    ? "action.selected"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+
+            <Tooltip
+              title={
+                mode === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
+              }
+            >
+              <IconButton
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                sx={{
+                  ml: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                {mode === "light" ? (
+                  <DarkModeOutlinedIcon />
+                ) : (
+                  <LightModeOutlinedIcon />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Button
+              variant="outlined"
+              color="inherit"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+              sx={{
+                ml: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+
+          {/* Mobile Controls */}
+          <Box
+            sx={{
+              display: { xs: "flex", md: "none" },
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <IconButton
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              color="inherit"
+            >
+              {mode === "light" ? (
+                <DarkModeOutlinedIcon />
+              ) : (
+                <LightModeOutlinedIcon />
+              )}
+            </IconButton>
+
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation menu"
+              color="inherit"
             >
               <MenuIcon />
             </IconButton>
-          </Toolbar>
-        </Container>
+          </Box>
+        </Toolbar>
       </AppBar>
 
       {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={mobileOpen}
-        onClose={handleDrawerToggle}
+        onClose={() => setMobileOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: "82%", sm: 320 },
+            maxWidth: 360,
+          },
+        }}
       >
-        <Box
-          sx={{
-            width: 280,
-            height: "100%",
-          }}
-          role="presentation"
-        >
-          {/* Drawer Header */}
+        <Box sx={{ p: 2 }}>
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              px: 2,
-              py: 1.5,
+              mb: 1,
             }}
           >
-            <Typography fontWeight={700}>
-              Movie Explorer
+            <Typography variant="h6" fontWeight={800}>
+              Menu
             </Typography>
 
             <IconButton
-              onClick={handleDrawerToggle}
-              aria-label="close navigation menu"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close navigation menu"
             >
               <CloseIcon />
             </IconButton>
@@ -231,27 +277,28 @@ function Header() {
 
           <Divider />
 
-          {/* Navigation */}
-          <List sx={{ px: 1, py: 2 }}>
-            {navigationItems.map((item) => (
+          <List sx={{ py: 1 }}>
+            {navItems.map((item) => (
               <ListItemButton
                 key={item.path}
-                component={NavLink}
-                to={item.path}
-                onClick={handleDrawerToggle}
+                selected={isActive(item.path)}
+                onClick={() => handleNavigation(item.path)}
                 sx={{
                   borderRadius: 2,
                   mb: 0.5,
-
-                  "&.active": {
-                    backgroundColor: "action.selected",
-                    fontWeight: 700,
-                  },
                 }}
               >
-                <ListItemIcon>
+                <Box
+                  sx={{
+                    mr: 2,
+                    display: "flex",
+                    color: isActive(item.path)
+                      ? "primary.main"
+                      : "text.secondary",
+                  }}
+                >
                   {item.icon}
-                </ListItemIcon>
+                </Box>
 
                 <ListItemText
                   primary={item.label}
@@ -263,59 +310,31 @@ function Header() {
             ))}
           </List>
 
-          <Divider />
+          <Divider sx={{ my: 1 }} />
 
-          {/* Theme */}
-          <Box
+          <ListItemButton
+            onClick={handleLogout}
             sx={{
-              px: 2,
-              py: 2,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              borderRadius: 2,
             }}
           >
-            <Typography fontWeight={600}>
-              {mode === "light"
-                ? "Dark Mode"
-                : "Light Mode"}
-            </Typography>
-
-            <IconButton
-              onClick={toggleTheme}
-              aria-label={
-                mode === "light"
-                  ? "Switch to dark mode"
-                  : "Switch to light mode"
-              }
-            >
-              {mode === "light" ? (
-                <DarkModeIcon />
-              ) : (
-                <LightModeIcon />
-              )}
-            </IconButton>
-          </Box>
-
-          <Divider />
-
-          {/* Mobile Logout */}
-          <Box sx={{ p: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              color="error"
-              startIcon={<LogoutIcon />}
-              onClick={handleLogout}
+            <Box
               sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: 2,
+                mr: 2,
+                display: "flex",
+                color: "text.secondary",
               }}
             >
-              Logout
-            </Button>
-          </Box>
+              <LogoutIcon />
+            </Box>
+
+            <ListItemText
+              primary="Logout"
+              primaryTypographyProps={{
+                fontWeight: 600,
+              }}
+            />
+          </ListItemButton>
         </Box>
       </Drawer>
     </>

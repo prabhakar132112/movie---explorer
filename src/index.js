@@ -1,3 +1,6 @@
+import "./styles/animations.css";
+import "./styles/tokens.css";
+import "./styles/globals.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

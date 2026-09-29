@@ -21,3 +21,5 @@ export const getMovieDetails = (movieId) =>
       append_to_response: "credits,videos",
     },
   });
+  export const getMovieGenres = () =>
+  tmdbApi.get("/genre/movie/list");
