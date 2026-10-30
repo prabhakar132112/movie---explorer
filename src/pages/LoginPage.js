@@ -1,246 +1,87 @@
 import { useState } from "react";
-
-import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  InputAdornment,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
-
-import PersonIcon from "@mui/icons-material/Person";
-import LockIcon from "@mui/icons-material/Lock";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Alert, Box, Button, CircularProgress, Container, Divider, Paper, Stack, TextField, Typography } from "@mui/material";
 import MovieFilterIcon from "@mui/icons-material/MovieFilter";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import PlayCircleOutlineRoundedIcon from "@mui/icons-material/PlayCircleOutlineRounded";
-
-import { useNavigate } from "react-router-dom";
-
+import GoogleIcon from "@mui/icons-material/Google";
+import { useAuth } from "../context/AuthContext";
 import "./LoginPage.css";
 
-function LoginPage() {
+export default function LoginPage() {
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
-
-  const [username, setUsername] = useState("");
+  const location = useLocation();
+  const [mode, setMode] = useState("signin");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (event) => {
+  if (!authLoading && user) navigate("/dashboard", { replace: true });
+  const destination = location.state?.from?.pathname || "/dashboard";
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError(""); setMessage("");
+    if (!email.trim() || !password) return setError("Enter your email address and password.");
+    if (password.length < 6) return setError("Password must contain at least 6 characters.");
+    setBusy(true);
+    try {
+      const { data, error: authError } = mode === "signin"
+        ? await signIn(email.trim(), password)
+        : await signUp(email.trim(), password);
+      if (authError) throw authError;
+      if (mode === "signup" && !data.session) {
+        setMessage("Account created. Check your email to confirm your address, then sign in.");
+      } else navigate(destination, { replace: true });
+    } catch (err) {
+      setError(err.message || "Authentication failed. Please try again.");
+    } finally { setBusy(false); }
+  };
 
-    if (!username.trim() || !password.trim()) {
-      setError("Please enter both username and password.");
-      return;
+  const handleGoogle = async () => {
+    setError(""); setBusy(true);
+    try {
+      const { error: authError } = await signInWithGoogle();
+      if (authError) throw authError;
+    } catch (err) {
+      setError(err.message || "Google sign-in could not be started.");
+      setBusy(false);
     }
-
-    localStorage.setItem(
-      "movieExplorerUser",
-      JSON.stringify({
-        username: username.trim(),
-      })
-    );
-
-    navigate("/");
   };
 
   return (
     <Box className="login-page">
-      {/* Cinematic Background */}
-      <Box className="login-page__background">
-        <Box className="login-page__glow login-page__glow--one" />
-        <Box className="login-page__glow login-page__glow--two" />
-        <Box className="login-page__glow login-page__glow--three" />
-
-        <Box className="login-page__film-strip">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <Box
-              key={index}
-              className="login-page__film-frame"
-            />
-          ))}
-        </Box>
-      </Box>
-
-      <Container
-        maxWidth="lg"
-        className="login-page__container"
-      >
-        {/* Brand / Introduction */}
-        <Box className="login-page__intro">
-          <Box className="login-page__brand">
-            <Box className="login-page__brand-icon">
-              <MovieFilterIcon />
+      <Container maxWidth="sm" sx={{ minHeight: "100vh", display: "grid", placeItems: "center", py: 4 }}>
+        <Paper elevation={0} className="login-card" sx={{ width: "100%", p: { xs: 3, sm: 5 }, borderRadius: 4 }}>
+          <Stack spacing={2.5}>
+            <Stack spacing={1} alignItems="center" textAlign="center">
+              <Box sx={{ width: 54, height: 54, borderRadius: 3, display: "grid", placeItems: "center", color: "white", background: "linear-gradient(135deg, #1976d2, #7c4dff)" }}><MovieFilterIcon /></Box>
+              <Typography variant="h4" fontWeight={850}>Movie Explorer</Typography>
+              <Typography color="text.secondary">{mode === "signin" ? "Sign in to continue exploring." : "Create an account to save your movie discoveries."}</Typography>
+            </Stack>
+            {error && <Alert severity="error">{error}</Alert>}
+            {message && <Alert severity="success">{message}</Alert>}
+            <Box component="form" onSubmit={handleSubmit}>
+              <Stack spacing={2}>
+                <TextField fullWidth label="Email address" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required />
+                <TextField fullWidth label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete={mode === "signin" ? "current-password" : "new-password"} inputProps={{ minLength: 6 }} required />
+                <Button type="submit" fullWidth variant="contained" size="large" disabled={busy} sx={{ py: 1.3, borderRadius: 2, fontWeight: 700 }}>
+                  {busy ? <CircularProgress size={24} color="inherit" /> : mode === "signin" ? "Sign in" : "Create account"}
+                </Button>
+              </Stack>
             </Box>
-
-            <Typography
-              component="span"
-              className="login-page__brand-name"
-            >
-              Movie Explorer
+            <Divider>OR</Divider>
+            <Button fullWidth variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={busy} sx={{ py: 1.2, borderRadius: 2, fontWeight: 700 }}>Continue with Google</Button>
+            <Typography textAlign="center" variant="body2" color="text.secondary">
+              {mode === "signin" ? "New to Movie Explorer?" : "Already have an account?"}{" "}
+              <Button size="small" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); setMessage(""); }}>
+                {mode === "signin" ? "Create account" : "Sign in"}
+              </Button>
             </Typography>
-          </Box>
-
-          <Typography
-            component="h1"
-            className="login-page__headline"
-          >
-            Your next
-            <span> great story </span>
-            starts here.
-          </Typography>
-
-          <Typography className="login-page__description">
-            Discover trending movies, explore new worlds,
-            and build a collection of stories worth watching.
-          </Typography>
-
-          <Box className="login-page__feature">
-            <PlayCircleOutlineRoundedIcon />
-
-            <Box>
-              <Typography
-                component="p"
-                className="login-page__feature-title"
-              >
-                Discover. Explore. Save.
-              </Typography>
-
-              <Typography
-                component="p"
-                className="login-page__feature-text"
-              >
-                Everything you love about movies, in one place.
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Login Card */}
-        <Paper
-          component="section"
-          elevation={0}
-          className="login-card"
-        >
-          <Box className="login-card__header">
-            <Box className="login-card__icon">
-              <MovieFilterIcon />
-            </Box>
-
-            <Typography
-              component="h2"
-              className="login-card__title"
-            >
-              Welcome back
-            </Typography>
-
-            <Typography className="login-card__subtitle">
-              Sign in to continue exploring.
-            </Typography>
-          </Box>
-
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            className="login-card__form"
-          >
-            <TextField
-              fullWidth
-              label="Username"
-              value={username}
-              onChange={(event) => {
-                setUsername(event.target.value);
-                setError("");
-              }}
-              autoComplete="username"
-              required
-              className="login-card__field"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                setError("");
-              }}
-              autoComplete="current-password"
-              required
-              className="login-card__field"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowPassword(
-                          (current) => !current
-                        )
-                      }
-                      edge="end"
-                      aria-label={
-                        showPassword
-                          ? "Hide password"
-                          : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <VisibilityOffIcon />
-                      ) : (
-                        <VisibilityIcon />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {error && (
-              <Typography
-                color="error"
-                variant="body2"
-                className="login-card__error"
-              >
-                {error}
-              </Typography>
-            )}
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              endIcon={<ArrowForwardRoundedIcon />}
-              className="login-card__submit"
-            >
-              Enter Movie Explorer
-            </Button>
-          </Box>
-
-          
+          </Stack>
         </Paper>
       </Container>
     </Box>
   );
 }
-
-export default LoginPage;
